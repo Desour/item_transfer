@@ -1,0 +1,112 @@
+
+obligatory callbacks for all item_transfer nodes:
+they are defined in the table node_def._item_transfer
+side is the pos of the other node
+
+can_connect(pos, node?, side, custom?)
+return values: (bool)in, (bool)out
+in: whether a connection is be allowed inward, (whether it will ever be allowed to send an itemstack to this node)
+out: whether a connection is be allowed outward, (whether it will ever be allowed to take an itemstack out of this node or whether it will ever happen that an item comes out of this node)
+
+connect(pos, node?, side, in, out, custom?)
+do a visual update or something
+no return value is needed but the function has to exist
+if in or out is a false value, the corresponding connection should be cut
+when a node is dug, it should do connect(...) to all its connected nodes or to all node that could be connected
+
+is_connected(pos, node?, side, others_in, others_out)
+return values: (bool)in, (bool)out
+returns whether a ćonnection is there inward and whether theres one outward
+others_in and others_out are for laziness. they should be returned if the node does not save to where it is connected
+
+can_insert(pos, node?, side, item, owner_of_item, custom?)
+3 return values:
+1: (bool) whether to accept the whole stack as it is
+2: (number) amount of items that are / would be accepted
+2: it should be a whole number between the stack size and 0
+2: if the first return value is true: the stack size is included, 0 is excluded and the default value is the stack size
+	else: 0 is included, the stack size is excluded and the default value is 0
+3: (number) a priority, it ranges form -inf to inf, default shall be 0
+3: it is for the case that the inserter has many destinations to choose from
+for examples see scenario 2
+
+insert(pos, node?, side, item, owner_of_item, custom?)
+custom might include wishes for the place where the item should go to
+its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
+no return values
+
+can_take(pos, node?, side, taker_name, wanted_item, exact, amount, custom)
+wanted_item can be nil
+wanted_item should not have a greater size than 1
+exact tells you whether the item must have exactly the same properties
+custom is something like "cycle through" or "item_at_slot_3"
+3 return values:
+1: (bool) whether the request can be fulfilled
+2: (number) amount that can be given
+2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
+3: (number) priority (see can_insert)
+
+take(pos, node?, side, taker_name, wanted_item, amount, custom)
+the parameters are the same as for can_take
+returns an itemstack?(or itemstring?) or nil
+the item has to be removed from the nodes inventory because of item conservation
+
+
+
+
+
+-----------------------------------------------------------------
+scenarios/examples:
+
+
+
+scenario 1: A (a tube or some other transporting machine) wants to make a connection to B (anything)
+
+A doer:
+local can_in, can_out = B.can_connect(...)
+-- lets say, im a pipeworks tube connecting with everything that wants to connect in any way
+if not (can_in or can_out) then
+	return
+end
+-- do own connection stuff here. ie. swap the node
+B.connect(B_pos, true and can_in, true and can_out, side) -- todo, the list of parameters might be incomplete and out of order
+
+
+B can_connect(...):
+-- lets say, im a chest. always accept all connections
+return true, true
+
+B connect(pos, in, out, side): -- todo, the list of parameters might be incomplete and out of order
+-- well, im a chest. ergo i dont do anything here
+
+
+scenario 2: A wants to send an item towards B
+
+A doer: (this is used by another function. if true is not returned, the item is sent somewhere else)
+local b, a = B.can_insert(...)
+if b then
+	a = a or stacksize
+	-- decrease the stack size to a if possible
+	-- send the whole stack
+else
+	a = a or 0
+	if a == 0 then return end -- the item is not accepted
+	-- decrease the stack size to a or do a return
+	-- send the stack (now with size a)
+end
+return true
+
+B can_insert(...):
+if (i am sure that i can take the whole stack) then
+	return true -- = return true, stacksize = return true, nil
+elseif (i have no space, all i could do is to drop the itemstack) then
+	return false -- = return nil = return false, 0
+elseif (i could take some but i dont want to take more, i had no choice but to drop the surplus) then
+	return false, a -- an amount of a can be taken. its sure that if the stack size was a, "return true, nil" would happen
+elseif (i can take some (and will send back the surplus), its ok if the whole stack is sent) then
+	return true, a -- same a as before, a = stacksize - surplus_amount
+else -- do the default thing: refuse everything
+	return nil -- (same as 2nd case)
+end
+
+
