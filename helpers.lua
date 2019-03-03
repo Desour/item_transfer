@@ -8,7 +8,28 @@ item_transfer.all_faces = {
 	{x =  0, y =  0, z = -1},
 }
 
-function item_transfer.give_side(pos, node, other_pos) -- todo
+function item_transfer.give_side(pos, node, other_pos)
+	local d = vector.subtract(other_pos, pos)
+	d = item_transfer.rotate_vector(pos, node, d)
+	if vector.length(d) ~= 1 then
+		return
+	end
+	if d.z == -1 then
+		return "forward"
+	elseif d.z == 1 then
+		return "backward"
+	elseif d.y == -1 then
+		return "downward"
+	elseif d.y == 1 then
+		return "upward"
+	elseif d.x == -1 then
+		return "right"
+	elseif d.x == 1 then
+		return "left"
+	end
+end
+
+function item_transfer.rotate_vector(pos, node, v) -- todo
 end
 
 function item_transfer.turn_sides(pos, node, s)

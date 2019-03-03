@@ -144,3 +144,33 @@ else -- do the default thing: refuse everything
 end
 
 
+-------------------------------------------------------------------------
+
+
+
+helpers:
+
+item_transfer.give_side(pos, node, other_pos)
+
+item_transfer.rotate_vector(pos, node, v)
+
+item_transfer.turn_sides(pos, node, s)
+
+item_transfer.get_callbacks(node_name)
+returns item_transfer callbacks in table format or nil if the node is no item_transfer node
+
+item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
+
+item_transfer.simple_can_take(listname[, is_prtotected_func])
+returns a function
+
+item_transfer.simple_take(listname)
+returns a function
+
+item_transfer.after_place_node(connections, other_after_place)
+returns a function
+
+item_transfer.after_dig_node(connections, other_after_dig)
+returns a function
+
+
