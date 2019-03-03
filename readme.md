@@ -21,8 +21,10 @@ todo:
 - define `custom` nearer, there have to be some default uses  
 - think about what helper functions might be needed  
 - add helper functions  
+- override nodes of commonly used mods (especially minetest_game mods) to use this api, use optional dependencies here  
 - documentation stuff  
 - make this to a proper mod with `mod.conf` and co.  
 - fix the readme if it's currently uggly  
+- add points to this todo list that are missing  
 
 :cat2:  
