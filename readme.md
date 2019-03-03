@@ -7,6 +7,7 @@ These are the goals for the api:
 - All cases should be covered.  
 - The item transfer of items should be done via the api. Liquids and other things are ignored.  
 - It should be attractive enought for modders to use it.  
+- All minetest-versions 5.0+ should be supported.  
 
 Stop reading here if this is a fork and not DS-minetest's reopsitory.  
 
