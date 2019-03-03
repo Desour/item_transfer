@@ -23,7 +23,7 @@ in: whether a connection is be allowed inward, (whether it will ever be allowed 
 out: whether a connection is be allowed outward, (whether it will ever be allowed to take an itemstack out of this node or whether it will ever happen that an item comes out of this node)
 connects_automatically: if a node that normally does not connect automatically connect uses can_connect and gets here a true value back, it should do connect(...)
 
-connect(pos, node, other_pos, in, out, custom?)
+connect(pos, node, other_pos, in, out, custom?) -- todo: in is a lua keyword >_<
 use this callback to tell a node, that it should connect to you
 do in this callback a visual update or something
 pos, node, other_pos: same as above
@@ -39,12 +39,12 @@ pos, node, other_pos: same as above
 others_in: whether the other node thinks that the return value in should be true
 others_out: whether the other node thinks that the return value out should be true
 return values: (bool)in, (bool)out
-returns whether a ćonnection is there inward and whether theres one outward
+returns whether a connection is there inward and whether theres one outward
 others_in and others_out are for laziness. they should be returned if the node does not save to where it is connected
 
 can_insert(pos, node, other_pos, item, owner_of_item, custom?)
 pos, node, other_pos: same as above
-item: an itemstack
+item: an itemstack (a copy, not the original?)
 owner_of_item: the name of the player that owns this item. "owns" means here that the player or a machine of the player has sent the item. this may be nil
 custom: todo
 3 return values:
