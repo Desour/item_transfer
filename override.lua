@@ -1,5 +1,8 @@
 
 if minetest.get_modpath("default") then
+	local furnace_def = minetest.registered_nodes["default:furnace"]
+	local old_furnace_after_place_node = furnace_def.after_place_node
+	local old_furnace_after_dig_node = furnace_def.after_dig_node
 	minetest.override_item("default:furnace", {
 		--~ groups = {item_transfer_node = 1},?
 		_item_transfer = {
@@ -23,7 +26,7 @@ if minetest.get_modpath("default") then
 				local meta = minetest.get_meta(pos)
 				local inv = meta:get_inventory()
 				local listname
-				if ~(side == "bottom" or custom == "fuel") then
+				if not (side == "bottom" or custom == "fuel") then
 					listname = "src"
 				else
 					listname = "fuel"
@@ -39,7 +42,7 @@ if minetest.get_modpath("default") then
 				local meta = minetest.get_meta(pos)
 				local inv = meta:get_inventory()
 				local listname
-				if ~(side == "bottom" or custom == "fuel") then
+				if not (side == "bottom" or custom == "fuel") then
 					listname = "src"
 				else
 					listname = "fuel"
@@ -49,7 +52,7 @@ if minetest.get_modpath("default") then
 					return
 				end
 				local other_node = minetest.get_node(other_pos)
-				local it = minetest.registered_nodes[other_node.name]._item_transfer -- here should be a helper
+				local it = item_transfer.get_callbacks(other_node.name)
 				if it.can_insert(other_pos, other_node, pos, item, owner_of_item, "overflow") then
 					it.insert(other_pos, other_node, pos, item, owner_of_item, "overflow")
 				else
@@ -59,6 +62,8 @@ if minetest.get_modpath("default") then
 			end,
 			can_take = item_transfer.simple_can_take("dst"),
 			take = item_transfer.simple_take("dst"),
+			after_place_node = item_transfer.after_place_node(item_transfer.all_faces, old_furnace_after_place_node),
+			after_dig_node = item_transfer.after_dig_node(item_transfer.all_faces, old_furnace_after_dig_node),
 		},
 	})
 end
