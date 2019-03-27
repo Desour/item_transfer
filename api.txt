@@ -83,7 +83,6 @@ insert(pos, node, other_pos, item, item_properties, custom)
 - called: take the item to you or drop it or something, but keep item conservation
 - parameters:
   * pos, node, other_pos, item, item_properties, custom: same as above
-  * custom might include wishes for the place where the item should go to (todo; tomove)
 - return: no return values
 - its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
 
@@ -98,7 +97,6 @@ can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
     wanted_item should not have a greater size than 1
   * exact tells you whether the item must have exactly the same properties
   * amount: the number of items that is wanted
-  * custom is something like "cycle through" or "item_at_slot_3" todo; tomove
 - return: 3 return values:
   * 1: (bool) whether the request can be fulfilled
   * 2: (number) amount that can be given
@@ -130,12 +128,60 @@ custom = {
     visited = {[<hashed_node_pos>] = <bool>, ...},
       -- if a node calls another node with the same callback, it has to carry this information further and has to add itself as true or stop if it is already visited
       -- this is to avoid cycling-loops
+    ...
 }
 
 connect:
 custom = {
     visited = {...},
-      -- same as before
+      -- same as above
+    ...
+}
+
+is_connected:
+custom = {
+    visited = {...},
+      -- same as above
+    ...
+}
+
+can_insert:
+custom = {
+    visited = {...},
+      -- same as above
+    ...
+}
+
+insert:
+custom = {
+    visited = {...},
+      -- same as above
+    destination = ?,
+      -- "* custom might include wishes for the place where the item should go to (todo)"
+    ...
+}
+
+can_take:
+custom = {
+    visited = {...},
+      -- same as above
+    item_at_slot = <number>,
+      -- return whether you can give the item at this slot instead of at any
+      -- the lowest value should be 0
+    cycle_through = <bool>,
+      -- if this is true, set item_at_slot to the number of the next slot, so that the caller can read this
+    ...
+}
+
+take:
+custom = {
+    visited = {...},
+      -- same as above
+    item_at_slot = <number>,
+      -- give the item at this slot
+    cycle_through = <bool>,
+      -- same as above
+    ...
 }
 
 
