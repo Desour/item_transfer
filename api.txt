@@ -51,15 +51,19 @@ connect(pos, node, other_pos, in, out, custom) -- todo: in is a lua keyword >_<
   when a node is dug, it should do connect(...) to all its connected nodes or to all node that could be connected
 
 is_connected(pos, node, other_pos, others_in, others_out, custom)
+- caller: see whether called can confirm how you thing how you are connected
+- called: answer, idk todo
 - parameters:
   * pos, node, other_pos, custom: same as above
   * others_in: whether the other node thinks that the return value in should be true
   * others_out: whether the other node thinks that the return value out should be true
 - return: (bool)in, (bool)out
   * returns whether a connection is there inward (in) and whether theres one outward (out)
-- others_in and others_out are for laziness. they should be returned if the node does not save to where it is connected
+- others_in and others_out are for laziness. they should be returned if called does not save to where it is connected
 
 can_insert(pos, node, other_pos, item, item_properties, custom)
+- caller: check whether an itemstack can be added
+- called: caller wants to send you an item, return whether you have space
 - parameters:
   * pos, node, other_pos, custom: same as above
   * item: an itemstack (a copy, not the original?)
@@ -75,6 +79,8 @@ can_insert(pos, node, other_pos, item, item_properties, custom)
 - for examples see scenario 2
 
 insert(pos, node, other_pos, item, item_properties, custom)
+- caller: insert an item into called. assume that item is away
+- called: take the item to you or drop it or something, but keep item conservation
 - parameters:
   * pos, node, other_pos, item, item_properties, custom: same as above
   * custom might include wishes for the place where the item should go to (todo; tomove)
@@ -82,6 +88,8 @@ insert(pos, node, other_pos, item, item_properties, custom)
 - its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
 
 can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
+- caller: see whether you can extract an amount of item
+- called: return whether you can give that many items
 - parameters:
   * pos, node, other_pos, custom: same as above
   * taker_name: the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner_of_item in the insert and can_insert callbacks
@@ -98,6 +106,8 @@ can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
   * 3: (number) priority (see can_insert)
 
 take(pos, node, other_pos, taker_name, wanted_item, amount, custom)
+- caller: get some items
+- called: give items away
 - parameters:
   * pos, node, other_pos, taker_name, wanted_item, amount, custom: same as above
 - return: returns an itemstack?(or itemstring?) or nil
@@ -118,7 +128,7 @@ there are some default custom things that are commonly known and used for:
 can_connect:
 custom = {
     visited = {[<hashed_node_pos>] = <bool>, ...},
-      -- if a node calls another node the same callback, it has to carry this information further and has to add itself as true or stop if it is already visited
+      -- if a node calls another node with the same callback, it has to carry this information further and has to add itself as true or stop if it is already visited
       -- this is to avoid cycling-loops
 }
 
