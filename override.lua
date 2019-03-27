@@ -10,7 +10,7 @@ if minetest.get_modpath("default") then
 				if vector.distance(pos, other_pos) ~= 1 then
 					return
 				end
-				local side = item_transfer.give_side(pos, node, other_pos)
+				local side = item_transfer.give_side(pos, node, other_pos, "facedir")
 				if side == "front" and custom == "tube" then
 					return
 				end
@@ -22,7 +22,7 @@ if minetest.get_modpath("default") then
 				return others_in, others_out
 			end,
 			can_insert = function(pos, node, other_pos, item, _, custom)
-				local side = item_transfer.give_side(pos, node, other_pos)
+				local side = item_transfer.give_side(pos, node, other_pos, "facedir")
 				local meta = minetest.get_meta(pos)
 				local inv = meta:get_inventory()
 				local listname
@@ -38,7 +38,7 @@ if minetest.get_modpath("default") then
 				return false, item:get_count() - stack:add_item(item):get_count()
 			end,
 			insert = function(pos, node, other_pos, item, owner_of_item, custom)
-				local side = item_transfer.give_side(pos, node, other_pos)
+				local side = item_transfer.give_side(pos, node, other_pos, "facedir")
 				local meta = minetest.get_meta(pos)
 				local inv = meta:get_inventory()
 				local listname
@@ -62,8 +62,10 @@ if minetest.get_modpath("default") then
 			end,
 			can_take = item_transfer.simple_can_take("dst"),
 			take = item_transfer.simple_take("dst"),
-			after_place_node = item_transfer.after_place_node(item_transfer.all_faces, old_furnace_after_place_node),
-			after_dig_node = item_transfer.after_dig_node(item_transfer.all_faces, old_furnace_after_dig_node),
+			after_place_node = item_transfer.after_place_node(item_transfer.all_faces,
+					old_furnace_after_place_node, "facedir"),
+			after_dig_node = item_transfer.after_dig_node(item_transfer.all_faces,
+					old_furnace_after_dig_node, "facedir"),
 		},
 	})
 end

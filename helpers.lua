@@ -8,9 +8,9 @@ item_transfer.all_faces = {
 	{x =  0, y =  0, z = -1},
 }
 
-function item_transfer.give_side(pos, node, other_pos)
+function item_transfer.give_side(pos, node, other_pos, pt2)
 	local d = vector.subtract(other_pos, pos)
-	d = item_transfer.rotate_vector(pos, node, d)
+	d = item_transfer.rotate_side_vector(pos, node, d, pt2)
 	if vector.length(d) ~= 1 then
 		return
 	end
@@ -29,18 +29,81 @@ function item_transfer.give_side(pos, node, other_pos)
 	end
 end
 
-function item_transfer.rotate_vector(pos, node, v) -- todo
+function item_transfer.vector_rotate_right(v)
 end
 
-function item_transfer.turn_sides(pos, node, s)
-	return s -- todo
+function item_transfer.vector_rotate_left(v)
+end
+--todo (these function might be found in mesecons)
+function item_transfer.vector_rotate_up(v)
+end
+
+function item_transfer.vector_rotate_down(v)
+end
+
+function item_transfer.rotate_side_vector(pos, node, v, pt2)
+	local param2 = node.param2
+
+	if pt2 == "colorfacedir" then
+		pt2 = "facedir"
+		minetest.strip_param2_color(param2, pt2)
+	elseif pt2 == "colorwallmounted" then
+		pt2 = "wallmounted"
+		minetest.strip_param2_color(param2, pt2)
+	end
+
+	if pt2 == "facedir" then
+		local dir = minetest.facedir_to_dir(param2)
+		-- todo
+	elseif pt2 == "wallmounted" then
+		local dir = minetest.wallmounted_to_dir(param2)
+		-- todo
+		--~ if dir.z == -1 then
+			--~ v = item_transfer.vector_rotate_right(v)
+			--~ v = item_transfer.vector_rotate_right(v)
+		--~ elseif dir.x == -1 then
+			--~ v = item_transfer.vector_rotate_left(v)
+		--~ elseif dir.x == 1 then
+			--~ v = item_transfer.vector_rotate_right(v)
+		--~ elseif dir.y == -1 then
+			--~ v = item_transfer.vector_rotate_up(v)
+		--~ elseif dir.y == 1 then
+			--~ v = item_transfer.vector_rotate_down(v)
+		--~ end
+	end
+	return v
+end
+
+function item_transfer.rotate_side_vectors(pos, node, s, pt2)
+	for i = 1, #s do
+		s[i] = item_transfer.rotate_side_vector(pos, node, s[i], pt2)
+	end
+	return s
 end
 
 function item_transfer.get_callbacks(node_name)
 	return minetest.registered_nodes[node_name]._item_transfer
 end
 
-function item_transfer.how_many_of_item(wanted_item, inv, listname, exact) -- todo
+function item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
+	local list = inv:get_list(listname)
+	local retval = 0
+	if not exact then
+		local wanted_item_name = wanted_item:get_name()
+		for i = 1, #list do
+			if list[i]:peek_item():get_name() == wanted_item_name then
+				retval = retval + list[i]:get_count()
+			end
+		end
+	else
+		local wanted_item_name = wanted_item:to_string()
+		for i = 1, #list do
+			if list[i]:peek_item():to_string() == wanted_item_name then
+				retval = retval + list[i]:get_count()
+			end
+		end
+	end
+	return retval
 end
 
 function item_transfer.simple_can_take(listname, is_prtotected_f)
@@ -63,10 +126,10 @@ function item_transfer.simple_take(listname)
 	end
 end
 
-function item_transfer.after_place_node(connections, other_after_place)
+function item_transfer.after_place_node(connections, other_after_place, pt2)
 	return function(pos, ...)
 		local node = minetest.get_node(pos)
-		connections = item_transfer.turn_sides(pos, node, connections)
+		connections = item_transfer.rotate_side_vectors(pos, node, connections, pt2)
 		for i = 1, #connections do
 			local other_pos = vector.add(pos, connections[i])
 			local other_node = minetest.get_node(pos)
@@ -84,9 +147,9 @@ function item_transfer.after_place_node(connections, other_after_place)
 	end
 end
 
-function item_transfer.after_dig_node(connections, other_after_dig)
+function item_transfer.after_dig_node(connections, other_after_dig, pt2)
 	return function(pos, node, ...)
-		connections = item_transfer.turn_sides(pos, node, connections)
+		connections = item_transfer.rotate_side_vectors(pos, node, connections, pt2)
 		for i = 1, #connections do
 			local other_pos = vector.add(pos, connections[i])
 			local other_node = minetest.get_node(pos)
