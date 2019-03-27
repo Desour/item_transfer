@@ -1,89 +1,145 @@
+Nodes that want to transfer items between themselves and other nodes should use this api.
+In this file nodes of this sort will be called item transfer nodes.
+
+Item transfering nodes differ from other nodes by their node definition.
 
 
-obligatory callbacks for all item_transfer nodes:
-they are defined in the table node_def._item_transfer
+Groups
+------
+
+All item transfering nodes should have the group `item_transfering = 1`.
+
+
+Callbacks
+---------
+
+Item transfering nodes should also have some callbacks defined in a table in their node definition.
+This table should be named `"_item_transfer"`, so that `node_def._item_transfer` is it.
+These callbacks should be called by other item transfering nodes. They should get them via `item_transfer.get_callbacks(node_name)` (see Helpers).
+All these seven callbacks are obligatory.
 
 format:
 <callback_name>(<parameters>)
-<basic information for the caller>
-<basic information for the called one>
-<parameters>
-<return value(s)>
-<extra/special information>
+- caller: <basic information for the caller>
+- called: <basic information for the called one>
+- parameters: <parameters>
+- return: <return value(s)>
+- <extra/special information>
 
-can_connect(pos, node, other_pos, custom?)
-use this to check if the node wants to connect to you
-return information on whether a connection should be done
-pos: the position of the node on which the callback is called
-node: the node at pos
-other_pos: the position of the node from which the callback is called
-custom: todo
-return values: (bool)in, (bool)out, (bool)connects_automatically
-in: whether a connection is be allowed inward, (whether it will ever be allowed to send an itemstack to this node)
-out: whether a connection is be allowed outward, (whether it will ever be allowed to take an itemstack out of this node or whether it will ever happen that an item comes out of this node)
-connects_automatically: if a node that normally does not connect automatically connect uses can_connect and gets here a true value back, it should do connect(...)
+can_connect(pos, node, other_pos, custom)
+- caller: use this to check if the node wants to connect to you
+- called: return information on whether a connection should be done
+- parameters:
+  * pos: the position of the node on which the callback is called
+  * node: the node at pos
+  * other_pos: the position of the node from which the callback is called
+  * custom: todo
+- return: (bool)in, (bool)out, (bool)connects_automatically
+  * in: whether a connection is be allowed inward, (whether it will ever be allowed to send an itemstack to this node)
+  * out: whether a connection is be allowed outward, (whether it will ever be allowed to take an itemstack out of this node or whether it will ever happen that an item comes out of this node)
+  * connects_automatically: if a node that normally does not connect automatically connect uses can_connect and gets here a true value back, it should do connect(...)
 
 connect(pos, node, other_pos, in, out, custom?) -- todo: in is a lua keyword >_<
-use this callback to tell a node, that it should connect to you
-do in this callback a visual update or something
-pos, node, other_pos: same as above
-in: whether there should be a connection inward
-out: whether there should be a connection outward
-custom: todo
-no return value is needed but the function has to exist
-if in or out is a false value, the corresponding connection should be cut
-when a node is dug, it should do connect(...) to all its connected nodes or to all node that could be connected
+- caller: use this callback to tell a node, that it should connect to you
+- called: do in this callback a visual update or something
+- parameters:
+  * pos, node, other_pos: same as above
+  * in: whether there should be a connection inward
+  * out: whether there should be a connection outward
+  * custom: todo
+- return: no return value is needed but the function has to exist
+- if in or out is a false value, the corresponding connection should be cut
+  when a node is dug, it should do connect(...) to all its connected nodes or to all node that could be connected
 
 is_connected(pos, node, other_pos, others_in, others_out)
-pos, node, other_pos: same as above
-others_in: whether the other node thinks that the return value in should be true
-others_out: whether the other node thinks that the return value out should be true
-return values: (bool)in, (bool)out
-returns whether a connection is there inward and whether theres one outward
-others_in and others_out are for laziness. they should be returned if the node does not save to where it is connected
+- parameters:
+  * pos, node, other_pos: same as above
+  * others_in: whether the other node thinks that the return value in should be true
+  * others_out: whether the other node thinks that the return value out should be true
+- return: (bool)in, (bool)out
+  * returns whether a connection is there inward (in) and whether theres one outward (out)
+- others_in and others_out are for laziness. they should be returned if the node does not save to where it is connected
 
 can_insert(pos, node, other_pos, item, owner_of_item, custom?)
-pos, node, other_pos: same as above
-item: an itemstack (a copy, not the original?)
-owner_of_item: the name of the player that owns this item. "owns" means here that the player or a machine of the player has sent the item. this may be nil
-custom: todo
-3 return values:
-1: (bool) whether to accept the whole stack as it is
-2: (number) amount of items that are / would be accepted
-2: it should be a whole number between the stack size and 0
-2: if the first return value is true: the stack size is included, 0 is excluded and the default value is the stack size
-	else: 0 is included, the stack size is excluded and the default value is 0
-3: (number) a priority, it ranges form -inf to inf, default shall be 0
-3: it is for the case that the inserter has many destinations to choose from
-for examples see scenario 2
+- parameters:
+  * pos, node, other_pos: same as above
+  * item: an itemstack (a copy, not the original?)
+  * owner_of_item: the name of the player that owns this item. "owns" means here that the player or a machine of the player has sent the item. this may be nil
+  * custom: todo
+- return: 3 return values:
+  * 1: (bool) whether to accept the whole stack as it is
+  * 2: (number) amount of items that are / would be accepted
+  * 2: it should be a whole number between the stack size and 0
+  * 2: if the first return value is true: the stack size is included, 0 is excluded and the default value is the stack size
+    else: 0 is included, the stack size is excluded and the default value is 0
+  * 3: (number) a priority, it ranges form -inf to inf, default shall be 0
+  * 3: it is for the case that the inserter has many destinations to choose from
+- for examples see scenario 2
 
 insert(pos, node, other_pos, item, owner_of_item, custom?)
-pos, node, other_pos, item, owner_of_item: same as above
-custom: todo
-custom might include wishes for the place where the item should go to
-its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
-no return values
+- parameters:
+  * pos, node, other_pos, item, owner_of_item: same as above
+  * custom: todo
+  * custom might include wishes for the place where the item should go to (todo)
+- return: no return values
+- its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
 
 can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
-pos, node, other_pos: same as above
-taker_name: the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner_of_item in the insert and can_insert callbacks
-wanted_item: an itemstring or an itemstack? (todo) the item that the taker(=caller) wants to take
-wanted_item can be nil
-wanted_item should not have a greater size than 1
-exact tells you whether the item must have exactly the same properties
-amount: the number of items that is wanted
-custom is something like "cycle through" or "item_at_slot_3" todo
-3 return values:
-1: (bool) whether the request can be fulfilled
-2: (number) amount that can be given
-2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
-3: (number) priority (see can_insert)
+- parameters:
+  * pos, node, other_pos: same as above
+  * taker_name: the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner_of_item in the insert and can_insert callbacks
+  * wanted_item: an itemstring or an itemstack? (todo) the item that the taker(=caller) wants to take
+    wanted_item can be nil
+    wanted_item should not have a greater size than 1
+  * exact tells you whether the item must have exactly the same properties
+  * amount: the number of items that is wanted
+  * custom is something like "cycle through" or "item_at_slot_3" todo
+- return: 3 return values:
+  * 1: (bool) whether the request can be fulfilled
+  * 2: (number) amount that can be given
+  * 2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
+  * 3: (number) priority (see can_insert)
 
 take(pos, node, other_pos, taker_name, wanted_item, amount, custom)
-pos, node, other_pos, taker_name, wanted_item, amount: same as above
-custom: todo
-returns an itemstack?(or itemstring?) or nil
-the item has to be removed from the nodes inventory because of item conservation
+- parameters:
+  * pos, node, other_pos, taker_name, wanted_item, amount: same as above
+  * custom: todo
+- return: returns an itemstack?(or itemstring?) or nil
+- the item has to be removed from the nodes inventory because of item conservation
+
+
+Helpers
+-------
+
+There are also some helper functions that should make it easier to use this api:
+
+item_transfer.give_side(pos, node, other_pos)
+
+item_transfer.rotate_vector(pos, node, v)
+
+item_transfer.turn_sides(pos, node, s)
+
+item_transfer.get_callbacks(node_name)
+returns item_transfer callbacks in table format or nil if the node is no item_transfer node
+
+item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
+
+item_transfer.simple_can_take(listname[, is_prtotected_func])
+returns a function
+
+item_transfer.simple_take(listname)
+returns a function
+
+item_transfer.after_place_node(connections, other_after_place)
+returns a function
+
+item_transfer.after_dig_node(connections, other_after_dig)
+returns a function
+
+
+
+
+
 
 
 
@@ -148,29 +204,6 @@ end
 
 
 
-helpers:
 
-item_transfer.give_side(pos, node, other_pos)
-
-item_transfer.rotate_vector(pos, node, v)
-
-item_transfer.turn_sides(pos, node, s)
-
-item_transfer.get_callbacks(node_name)
-returns item_transfer callbacks in table format or nil if the node is no item_transfer node
-
-item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
-
-item_transfer.simple_can_take(listname[, is_prtotected_func])
-returns a function
-
-item_transfer.simple_take(listname)
-returns a function
-
-item_transfer.after_place_node(connections, other_after_place)
-returns a function
-
-item_transfer.after_dig_node(connections, other_after_dig)
-returns a function
 
 
