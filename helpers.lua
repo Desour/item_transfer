@@ -106,6 +106,16 @@ function item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
 	return retval
 end
 
+function item_transfer.simple_can_connect(connected_sides)
+end
+
+function item_transfer.do_nothing()
+end
+
+function item_transfer.simple_is_connected(_, _, _, others_in, others_out, _)
+	return others_in, others_out
+end
+
 function item_transfer.simple_can_take(listname, is_prtotected_f)
 	return function(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
 		local meta = minetest.get_meta(pos)

@@ -18,6 +18,19 @@ This table should be named `"_item_transfer"`, so that `node_def._item_transfer`
 These callbacks should be called by other item transfering nodes. They should get them via `item_transfer.get_callbacks(node_name)` (see Helpers).
 All these seven callbacks are obligatory.
 
+In your node definition, it should look like this:
+_item_transfer = {
+	can_connect = function(pos, node, other_pos, custom),
+	connect = function(pos, node, other_pos, inward, outward, custom),
+	is_connected = function(pos, node, other_pos, others_in, others_out, custom),
+	can_insert = function(pos, node, other_pos, item, item_properties, custom),
+	insert = function(pos, node, other_pos, item, item_properties, custom),
+	can_take = function(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom),
+	take = function(pos, node, other_pos, taker_name, wanted_item, amount, custom),
+}
+
+All these callbacks are documented below:
+
 format:
 <callback_name>(<parameters>)
 - caller: <basic information for the caller>
@@ -39,20 +52,20 @@ can_connect(pos, node, other_pos, custom)
   * out: whether a connection is be allowed outward, (whether it will ever be allowed to take an itemstack out of this node or whether it will ever happen that an item comes out of this node)
   * connects_automatically: if a node that normally does not connect automatically connect uses can_connect and gets here a true value back, it should do connect(...)
 
-connect(pos, node, other_pos, in, out, custom) -- todo: in is a lua keyword >_<
+connect(pos, node, other_pos, inward, outward, custom)
 - caller: use this callback to tell a node, that it should connect to you
 - called: do in this callback a visual update or something
 - parameters:
   * pos, node, other_pos, custom: same as above
-  * in: whether there should be a connection inward
-  * out: whether there should be a connection outward
+  * inward: whether there should be a connection inward
+  * outward: whether there should be a connection outward
 - return: no return value is needed but the function has to exist
 - if in or out is a false value, the corresponding connection should be cut
   when a node is dug, it should do connect(...) to all its connected nodes or to all node that could be connected
 
 is_connected(pos, node, other_pos, others_in, others_out, custom)
-- caller: see whether called can confirm how you thing how you are connected
-- called: answer, idk todo
+- caller: see whether called can confirm how you think how you are connected
+- called: return the set connections
 - parameters:
   * pos, node, other_pos, custom: same as above
   * others_in: whether the other node thinks that the return value in should be true
@@ -76,7 +89,7 @@ can_insert(pos, node, other_pos, item, item_properties, custom)
     else: 0 is included, the stack size is excluded and the default value is 0
   * 3: (number) a priority, it ranges form -inf to inf, default shall be 0
   * 3: it is for the case that the inserter has many destinations to choose from
-- for examples see scenario 2
+- for examples see scenario 2 todo
 
 insert(pos, node, other_pos, item, item_properties, custom)
 - caller: insert an item into called. assume that item is away
@@ -95,7 +108,7 @@ can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
   * wanted_item: an itemstring or an itemstack? (todo) the item that the taker(=caller) wants to take
     wanted_item can be nil
     wanted_item should not have a greater size than 1
-  * exact tells you whether the item must have exactly the same properties
+  * exact tells you whether the item must have exactly the same properties (todo)
   * amount: the number of items that is wanted
 - return: 3 return values:
   * 1: (bool) whether the request can be fulfilled
@@ -218,6 +231,15 @@ item_transfer.get_callbacks(node_name)
 returns item_transfer callbacks in table format or nil if the node is no item_transfer node
 
 item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
+
+item_transfer.simple_can_connect(connected_sides)
+returns a function; todo
+
+item_transfer.do_nothing()
+does nothing. you can use this as placeholder for the callback connect
+
+item_transfer.simple_is_connected(_, _, _, others_in, others_out, _)
+you can use this as placeholder for the callback is_connect
 
 item_transfer.simple_can_take(listname[, is_prtotected_func])
 returns a function
