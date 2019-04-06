@@ -23,6 +23,7 @@ todo:
 - add helper functions  
 - override nodes of commonly used mods (especially minetest_game mods) to use this api, use optional dependencies here  
 - documentation stuff  
+- test this  
 - fix the readme if it's currently uggly  
 - add points to this todo list that are missing  
 
