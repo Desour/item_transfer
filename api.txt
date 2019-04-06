@@ -39,7 +39,7 @@ format:
 - return: <return value(s)>
 - <extra/special information>
 
-can_connect(pos, node, other_pos, custom)
+can_connect(pos, node, other_pos[, custom])
 - caller: use this to check if the node wants to connect to you
 - called: return information on whether a connection should be done
 - parameters:
@@ -52,7 +52,7 @@ can_connect(pos, node, other_pos, custom)
   * out: whether a connection is be allowed outward, (whether it will ever be allowed to take an itemstack out of this node or whether it will ever happen that an item comes out of this node)
   * connects_automatically: if a node that normally does not connect automatically connect uses can_connect and gets here a true value back, it should do connect(...)
 
-connect(pos, node, other_pos, inward, outward, custom)
+connect(pos, node, other_pos, inward, outward[, custom])
 - caller: use this callback to tell a node, that it should connect to you
 - called: do in this callback a visual update or something
 - parameters:
@@ -60,10 +60,10 @@ connect(pos, node, other_pos, inward, outward, custom)
   * inward: whether there should be a connection inward
   * outward: whether there should be a connection outward
 - return: no return value is needed but the function has to exist
-- if in or out is a false value, the corresponding connection should be cut
+- if inward or outward is a false value, the corresponding connection should be cut
   when a node is dug, it should do connect(...) to all its connected nodes or to all node that could be connected
 
-is_connected(pos, node, other_pos, others_in, others_out, custom)
+is_connected(pos, node, other_pos, others_in, others_out[, custom])
 - caller: see whether called can confirm how you think how you are connected
 - called: return the set connections
 - parameters:
@@ -74,7 +74,7 @@ is_connected(pos, node, other_pos, others_in, others_out, custom)
   * returns whether a connection is there inward (in) and whether theres one outward (out)
 - others_in and others_out are for laziness. they should be returned if called does not save to where it is connected
 
-can_insert(pos, node, other_pos, item, item_properties, custom)
+can_insert(pos, node, other_pos, item[, item_properties, custom])
 - caller: check whether an itemstack can be added
 - called: caller wants to send you an item, return whether you have space
 - parameters:
@@ -92,7 +92,7 @@ can_insert(pos, node, other_pos, item, item_properties, custom)
   * 3: nodes that do not only send the item directly further should have the value 100
 - for examples see scenario 2 todo
 
-insert(pos, node, other_pos, item, item_properties, custom)
+insert(pos, node, other_pos, item[, item_properties, custom])
 - caller: insert an item into called. assume that item is away
 - called: take the item to you or drop it or something, but keep item conservation
 - parameters:
@@ -100,13 +100,13 @@ insert(pos, node, other_pos, item, item_properties, custom)
 - return: no return values
 - its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
 
-can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
+can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount[, custom])
 - caller: see whether you can extract an amount of item
 - called: return whether you can give that many items
 - parameters:
   * pos, node, other_pos, custom: same as above
-  * taker_name: the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner_of_item in the insert and can_insert callbacks
-  * wanted_item: an itemstring or an itemstack? (todo) the item that the taker(=caller) wants to take
+  todo: remove this: * taker_name: the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner_of_item in the insert and can_insert callbacks
+  * wanted_item: an itemstack, the item that the taker(=caller) wants to take
     wanted_item can be nil
     wanted_item should not have a greater size than 1
   * exact tells you whether the item must have exactly the same properties (todo)
@@ -117,7 +117,7 @@ can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
   * 2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
   * 3: (number) priority (see can_insert) todo: is priority needed here?
 
-take(pos, node, other_pos, taker_name, wanted_item, amount, custom)
+take(pos, node, other_pos, taker_name, wanted_item, amount[, custom]) todo: exact?
 - caller: get some items
 - called: give items away
 - parameters:
