@@ -25,8 +25,8 @@ _item_transfer = {
 	is_connected = function(pos, node, other_pos, others_in, others_out, custom),
 	can_insert = function(pos, node, other_pos, item, item_properties, custom),
 	insert = function(pos, node, other_pos, item, item_properties, custom),
-	can_take = function(pos, node, other_pos, wanted_item, exact, amount, custom),
-	take = function(pos, node, other_pos, wanted_item, amount, custom),
+	can_take = function(pos, node, other_pos, wanted_item, amount, exact, custom),
+	take = function(pos, node, other_pos, wanted_item, amount, exact, custom),
 }
 
 All these callbacks are documented below:
@@ -106,12 +106,12 @@ can_take(pos, node, other_pos[, wanted_item, amount, exact, custom])
 - parameters:
   * pos, node, other_pos, custom: same as above
   * wanted_item: an itemstack, the item that the taker(=caller) wants to take
-    wanted_item can be nil
+    wanted_item can be nil, which means that anything should be taken
     wanted_item should not have a greater size than 1
   * amount: the number of items that is wanted
-    amount can be nil if wanted_item is nil
+    amount can be nil if wanted_item is nil, this means that a whole stack is wanted
   * exact: a number describing how many exactness requirements are in custom. called has to cover all these or can not give the wanted item; default: 0
-  * exact and amount can be ignored if wanted_item is nil
+    exact can be ignored if wanted_item is nil
 - return: maximally 2 return values:
   * 1: (bool) if wanted_item is given: whether the request can be fulfilled; else: whether anything can be taken out, second returnvalue is nil
   * 2: (number) amount that can be given
@@ -191,7 +191,7 @@ custom = {
       -- the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner in item_properties in the insert and can_insert callbacks
     item_at_slot = <number>,
       -- return whether you can give the item at this slot instead of at any
-      -- the lowest value should be 0
+      -- the lowest value should be 1
     cycle_through = <bool>,
       -- if this is true, set item_at_slot to the number of the next slot, so that the caller can read this
     meta_match = <bool>,

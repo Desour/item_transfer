@@ -216,7 +216,23 @@ function item_transfer.simple_take(listname, is_prtotected_f)
 			return item_transfer.remove_item(inv, listname, wanted_item, amount,
 					meta_match, wear_match) -- todo: if cycle is on, use it
 		else
-			-- todo
+			local itemslot = custom and custom.item_at_slot or 1
+			local item
+			local size = inv:get_size(listname)
+			repeat
+				item = inv:get_stack(listname, itemslot)
+				itemslot = itemslot % size + 1
+			until not item.is_empty()
+			local new_stack = ItemStack()
+			if amount then
+				new_stack = item
+				item = new_stack:take_item(amount)
+			end
+			inv:set_stack(listname, itemslot - 1, new_stack)
+			if custom and custom.cycle_through then
+				custom.item_at_slot = itemslot
+			end
+			return item
 		end
 	end
 end
