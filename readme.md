@@ -17,14 +17,12 @@ You can also make PRs and issues to help me with my todo list (see below).
 And you can reach me per forum pm. : )
 
 todo:  
-- decide about `side`, whether `node` should be given to the callbacks, ...  
+- decide about things  
 - what should I do with the scenarios? make them to a tutorial or to examples? remove them entirely? add more?  
-- define `custom` nearer, there have to be some default uses  
 - think about what helper functions might be needed  
 - add helper functions  
 - override nodes of commonly used mods (especially minetest_game mods) to use this api, use optional dependencies here  
 - documentation stuff  
-- make this to a proper mod with `mod.conf` and co.  
 - fix the readme if it's currently uggly  
 - add points to this todo list that are missing  
 
