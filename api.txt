@@ -25,8 +25,8 @@ _item_transfer = {
 	is_connected = function(pos, node, other_pos, others_in, others_out, custom),
 	can_insert = function(pos, node, other_pos, item, item_properties, custom),
 	insert = function(pos, node, other_pos, item, item_properties, custom),
-	can_take = function(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom),
-	take = function(pos, node, other_pos, taker_name, wanted_item, amount, custom),
+	can_take = function(pos, node, other_pos, wanted_item, exact, amount, custom),
+	take = function(pos, node, other_pos, wanted_item, amount, custom),
 }
 
 All these callbacks are documented below:
@@ -100,12 +100,11 @@ insert(pos, node, other_pos, item[, item_properties, custom])
 - return: no return values
 - its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
 
-can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount[, custom])
+can_take(pos, node, other_pos, wanted_item, exact, amount[, custom])
 - caller: see whether you can extract an amount of item
 - called: return whether you can give that many items
 - parameters:
   * pos, node, other_pos, custom: same as above
-  todo: remove this: * taker_name: the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner_of_item in the insert and can_insert callbacks
   * wanted_item: an itemstack, the item that the taker(=caller) wants to take
     wanted_item can be nil
     wanted_item should not have a greater size than 1
@@ -117,11 +116,11 @@ can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount[, custom])
   * 2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
   * 3: (number) priority (see can_insert) todo: is priority needed here?
 
-take(pos, node, other_pos, taker_name, wanted_item, amount[, custom]) todo: exact?
+take(pos, node, other_pos, wanted_item, amount[, custom]) todo: exact?
 - caller: get some items
 - called: give items away
 - parameters:
-  * pos, node, other_pos, taker_name, wanted_item, amount, custom: same as above
+  * pos, node, other_pos, wanted_item, amount, custom: same as above
 - return: returns an itemstack or nil
   * the itemstack should be the item that was wanted
 - the returned item has to be removed from the nodes inventory because of item conservation
@@ -186,6 +185,8 @@ can_take:
 custom = {
     visited = {...},
       -- same as above
+    taker_name = <string>,
+      -- the name of the player that owns the machine that wants to take. this can be nil. this is what should then be owner in item_properties in the insert and can_insert callbacks
     item_at_slot = <number>,
       -- return whether you can give the item at this slot instead of at any
       -- the lowest value should be 0
@@ -197,6 +198,8 @@ custom = {
 take:
 custom = {
     visited = {...},
+      -- same as above
+    taker_name = <string>,
       -- same as above
     item_at_slot = <number>,
       -- give the item at this slot

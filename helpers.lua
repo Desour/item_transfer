@@ -122,7 +122,7 @@ function item_transfer.simple_can_insert(input_listname, return_input_invref)
 end
 
 function item_transfer.simple_can_take(listname, is_prtotected_f)
-	return function(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
+	return function(pos, node, other_pos, wanted_item, exact, amount, custom)
 		local meta = minetest.get_meta(pos)
 		if is_prtotected_f and is_prtotected_f(pos, meta, taker_name) then
 			return false, 0
@@ -135,7 +135,7 @@ function item_transfer.simple_can_take(listname, is_prtotected_f)
 end
 
 function item_transfer.simple_take(listname)
-	return function(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
+	return function(pos, node, other_pos, wanted_item, exact, amount, custom) -- todo: exact?
 		local inv = minetest.get_meta(pos):get_inventory()
 		return inv:remove_item(listname, wanted_item:set_count(amount))
 	end
