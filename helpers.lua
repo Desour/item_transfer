@@ -86,6 +86,9 @@ function item_transfer.get_callbacks(node_name)
 end
 
 local function give_compare_function(wanted_item, meta_match, wear_match)
+	if not wanted_item then
+		return function() return true end
+	end
 	local wanted_item_name = wanted_item:get_name()
 	if not meta_match and not wear_match then
 		return function(item)
@@ -229,10 +232,11 @@ function item_transfer.simple_take(listname, is_prtotected_f)
 			return false, 0
 		end
 		local inv = meta:get_inventory()
-		if wanted_item then
+		if wanted_item and amount then -- get it from many stacks
 			return item_transfer.remove_item(inv, listname, wanted_item, amount,
 					custom, meta_match, wear_match)
-		else
+		else -- get it from one stack
+			local compare = give_compare_function(wanted_item, meta_match, wear_match)
 			local itemslot = custom and custom.item_at_slot or 1
 			local itemslot_start = itemslot
 			local item
@@ -243,7 +247,7 @@ function item_transfer.simple_take(listname, is_prtotected_f)
 				if itemslot == itemslot_start then
 					return -- item is empty because the whole list is empty
 				end
-			until not item.is_empty()
+			until not item.is_empty() and compare(item)
 			local new_stack = ItemStack()
 			if amount then
 				new_stack = item

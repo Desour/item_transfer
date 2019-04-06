@@ -109,7 +109,7 @@ can_take(pos, node, other_pos[, wanted_item, amount, exact, custom])
     wanted_item can be nil, which means that anything should be taken
     wanted_item should not have a greater size than 1
   * amount: the number of items that is wanted
-    amount can be nil if wanted_item is nil, this means that a whole stack is wanted
+    amount can be nil, this means that a whole stack is wanted
   * exact: a number describing how many exactness requirements are in custom. called has to cover all these or can not give the wanted item; default: 0
     exact can be ignored if wanted_item is nil
 - return: maximally 2 return values:
