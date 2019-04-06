@@ -127,18 +127,35 @@ function item_transfer.how_many_of_item(wanted_item, inv, listname, meta_match,
 	return retval
 end
 
-function item_transfer.remove_item(inv, listname, wanted_item, amount, meta_match,
-		wear_match)
+function item_transfer.remove_item(inv, listname, wanted_item, amount, custom,
+		meta_match, wear_match)
 	local list = inv:get_list(listname)
 	local retval = ItemStack()
 	local retval_count = 0
 	local compare = give_compare_function(wanted_item, meta_match, wear_match)
-	for i = 1, #list do
+	for i = custom and custom.item_at_slot or 1, #list do
 		local item = list[i]
 		if compare(item) then
 			retval:add_item(item:take_item(amount - retval_count))
 			local retval_count = retval:get_count()
 			if retval_count == amount then
+				if custom and custom.cycle_through then
+					custom.item_at_slot = i
+				end
+				inv:set_list(listname, list)
+				return retval
+			end
+		end
+	end
+	for i = 1, (custom and custom.item_at_slot or 1) - 1 do
+		local item = list[i]
+		if compare(item) then
+			retval:add_item(item:take_item(amount - retval_count))
+			local retval_count = retval:get_count()
+			if retval_count == amount then
+				if custom and custom.cycle_through then
+					custom.item_at_slot = i
+				end
 				break
 			end
 		end
@@ -214,14 +231,18 @@ function item_transfer.simple_take(listname, is_prtotected_f)
 		local inv = meta:get_inventory()
 		if wanted_item then
 			return item_transfer.remove_item(inv, listname, wanted_item, amount,
-					meta_match, wear_match) -- todo: if cycle is on, use it
+					custom, meta_match, wear_match)
 		else
 			local itemslot = custom and custom.item_at_slot or 1
+			local itemslot_start = itemslot
 			local item
 			local size = inv:get_size(listname)
 			repeat
 				item = inv:get_stack(listname, itemslot)
 				itemslot = itemslot % size + 1
+				if itemslot == itemslot_start then
+					return -- item is empty because the whole list is empty
+				end
 			until not item.is_empty()
 			local new_stack = ItemStack()
 			if amount then
