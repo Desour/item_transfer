@@ -79,7 +79,7 @@ can_insert(pos, node, other_pos, item, item_properties, custom)
 - called: caller wants to send you an item, return whether you have space
 - parameters:
   * pos, node, other_pos, custom: same as above
-  * item: an itemstack (a copy, not the original?)
+  * item: an itemstack (a copy, not the original)
   * item_properties: see item_properties thing
 - return: 3 return values:
   * 1: (bool) whether to accept the whole stack as it is
@@ -89,6 +89,7 @@ can_insert(pos, node, other_pos, item, item_properties, custom)
     else: 0 is included, the stack size is excluded and the default value is 0
   * 3: (number) a priority, it ranges form -inf to inf, default shall be 0
   * 3: it is for the case that the inserter has many destinations to choose from
+  * 3: nodes that do not only send the item directly further should have the value 100
 - for examples see scenario 2 todo
 
 insert(pos, node, other_pos, item, item_properties, custom)
@@ -114,15 +115,16 @@ can_take(pos, node, other_pos, taker_name, wanted_item, exact, amount, custom)
   * 1: (bool) whether the request can be fulfilled
   * 2: (number) amount that can be given
   * 2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
-  * 3: (number) priority (see can_insert)
+  * 3: (number) priority (see can_insert) todo: is priority needed here?
 
 take(pos, node, other_pos, taker_name, wanted_item, amount, custom)
 - caller: get some items
 - called: give items away
 - parameters:
   * pos, node, other_pos, taker_name, wanted_item, amount, custom: same as above
-- return: returns an itemstack?(or itemstring?) or nil
-- the item has to be removed from the nodes inventory because of item conservation
+- return: returns an itemstack or nil
+  * the itemstack should be the item that was wanted
+- the returned item has to be removed from the nodes inventory because of item conservation
 
 
 Custom
@@ -162,6 +164,10 @@ can_insert:
 custom = {
     visited = {...},
       -- same as above
+    destination = ?,
+      -- "* custom might include wishes for the place where the item should go to (todo)"
+    overflow = <bool>,
+      -- true if the item that should be inserted came from pos but was too big to be inserted
     ...
 }
 
@@ -170,7 +176,9 @@ custom = {
     visited = {...},
       -- same as above
     destination = ?,
-      -- "* custom might include wishes for the place where the item should go to (todo)"
+      -- same as above todo
+    overflow = <bool>,
+      -- same as above
     ...
 }
 
