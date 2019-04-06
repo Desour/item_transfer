@@ -85,25 +85,80 @@ function item_transfer.get_callbacks(node_name)
 	return minetest.registered_nodes[node_name]._item_transfer
 end
 
-function item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
-	local list = inv:get_list(listname)
-	local retval = 0
-	if not exact then
-		local wanted_item_name = wanted_item:get_name()
-		for i = 1, #list do
-			if list[i]:peek_item():get_name() == wanted_item_name then
-				retval = retval + list[i]:get_count()
-			end
+local function give_compare_function(wanted_item, meta_match, wear_match)
+	local wanted_item_name = wanted_item:get_name()
+	if not meta_match and not wear_match then
+		return function(item)
+			return item:get_name() == wanted_item_name
+		end
+	elseif not wear_match then
+		local wanted_item_meta = wanted_item:get_meta()
+		return function(item)
+			return item:get_name() == wanted_item_name and
+					item:get_meta():equals(wanted_item_meta)
+		end
+	elseif not meta_match then
+		local wanted_item_wear = wanted_item:get_wear()
+		return function(item)
+			return item:get_name() == wanted_item_name and
+					item:get_wear() == wanted_item_wear
 		end
 	else
-		local wanted_item_name = wanted_item:to_string()
-		for i = 1, #list do
-			if list[i]:peek_item():to_string() == wanted_item_name then
-				retval = retval + list[i]:get_count()
-			end
+		local wanted_item_wear = wanted_item:get_wear()
+		local wanted_item_meta = wanted_item:get_meta()
+		return function(item)
+			return item:get_name() == wanted_item_name and
+					item:get_wear() == wanted_item_wear and
+					item:get_meta():equals(wanted_item_meta)
+		end
+	end
+end
+
+function item_transfer.how_many_of_item(wanted_item, inv, listname, meta_match,
+		wear_match)
+	local list = inv:get_list(listname)
+	local retval = 0
+	local compare = give_compare_function(wanted_item, meta_match, wear_match)
+	for i = 1, #list do
+		if compare(list[i]:peek_item()) then
+			retval = retval + list[i]:get_count()
 		end
 	end
 	return retval
+end
+
+function item_transfer.remove_item(inv, listname, wanted_item, amount, meta_match,
+		wear_match)
+	local list = inv:get_list(listname)
+	local retval = ItemStack()
+	local retval_count = 0
+	local compare = give_compare_function(wanted_item, meta_match, wear_match)
+	for i = 1, #list do
+		local item = list[i]
+		if compare(item) then
+			retval:add_item(item:take_item(amount - retval_count))
+			local retval_count = retval:get_count()
+			if retval_count == amount then
+				break
+			end
+		end
+	end
+	inv:set_list(listname, list)
+	return retval
+end
+
+function item_transfer.give_exactment_requirements(custom, exact, ...)
+	if not custom then
+		return true
+	end
+	local req = {...}
+	for i = 1, #can do
+		req[i] = custom[req[i]]
+		if req[i] then
+			exact = exact - 1
+		end
+	end
+	return exact <= 0, unpack(req)
 end
 
 function item_transfer.simple_can_connect(paramtype2, connected_sides)
@@ -122,26 +177,51 @@ function item_transfer.simple_can_insert(input_listname, return_input_invref)
 end
 
 function item_transfer.simple_can_take(listname, is_prtotected_f)
-	return function(pos, node, other_pos, wanted_item, exact, amount, custom)
+	return function(pos, node, other_pos, wanted_item, amount, exact, custom)
+		local exactness_success, meta_match, wear_match = item_transfer.
+				give_exactment_requirements(custom, exact, "meta_match", "meta_wear")
+		if not exactness_success then
+			return false, 0
+		end
 		local meta = minetest.get_meta(pos)
-		if is_prtotected_f and is_prtotected_f(pos, meta, taker_name) then
+		if is_prtotected_f and
+				is_prtotected_f(pos, meta, custom and custom.taker_name) then
 			return false, 0
 		end
 		local inv = meta:get_inventory()
-		local can = inv:contains_item(listname, wanted_item, exact)
-		local c = item_transfer.how_many_of_item(wanted_item, inv, listname, exact)
-		return can, c
+		if wanted_item then
+			local count = item_transfer.how_many_of_item(wanted_item, inv, listname,
+					meta_match, wear_match)
+			return count >= amount, count
+		else
+			return true
+		end
 	end
 end
 
-function item_transfer.simple_take(listname)
-	return function(pos, node, other_pos, wanted_item, exact, amount, custom) -- todo: exact?
-		local inv = minetest.get_meta(pos):get_inventory()
-		return inv:remove_item(listname, wanted_item:set_count(amount))
+function item_transfer.simple_take(listname, is_prtotected_f)
+	return function(pos, node, other_pos, wanted_item, amount, exact, custom)
+		local exactness_success, meta_match, wear_match = item_transfer.
+				give_exactment_requirements(custom, exact, "meta_match", "meta_wear")
+		if not exactness_success then
+			return
+		end
+		local meta = minetest.get_meta(pos)
+		if is_prtotected_f and
+				is_prtotected_f(pos, meta, custom and custom.taker_name) then
+			return false, 0
+		end
+		local inv = meta:get_inventory()
+		if wanted_item then
+			return item_transfer.remove_item(inv, listname, wanted_item, amount,
+					meta_match, wear_match) -- todo: if cycle is on, use it
+		else
+			-- todo
+		end
 	end
 end
 
-function item_transfer.after_place_node(connections, other_after_place, pt2)
+function item_transfer.after_place_node(connections, other_after_place, pt2) --todo
 	return function(pos, ...)
 		local node = minetest.get_node(pos)
 		connections = item_transfer.rotate_side_vectors(pos, node, connections, pt2)
@@ -162,7 +242,7 @@ function item_transfer.after_place_node(connections, other_after_place, pt2)
 	end
 end
 
-function item_transfer.after_dig_node(connections, other_after_dig, pt2)
+function item_transfer.after_dig_node(connections, other_after_dig, pt2) --todo
 	return function(pos, node, ...)
 		connections = item_transfer.rotate_side_vectors(pos, node, connections, pt2)
 		for i = 1, #connections do

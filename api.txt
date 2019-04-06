@@ -100,7 +100,7 @@ insert(pos, node, other_pos, item[, item_properties, custom])
 - return: no return values
 - its the nodes duty to make sure that no items get lost. ergo an empty function is inaceptable (if the node is not a trash can)
 
-can_take(pos, node, other_pos, wanted_item, exact, amount[, custom])
+can_take(pos, node, other_pos[, wanted_item, amount, exact, custom])
 - caller: see whether you can extract an amount of item
 - called: return whether you can give that many items
 - parameters:
@@ -108,21 +108,23 @@ can_take(pos, node, other_pos, wanted_item, exact, amount[, custom])
   * wanted_item: an itemstack, the item that the taker(=caller) wants to take
     wanted_item can be nil
     wanted_item should not have a greater size than 1
-  * exact tells you whether the item must have exactly the same properties (todo)
   * amount: the number of items that is wanted
-- return: 3 return values:
-  * 1: (bool) whether the request can be fulfilled
+    amount can be nil if wanted_item is nil
+  * exact: a number describing how many exactness requirements are in custom. called has to cover all these or can not give the wanted item; default: 0
+  * exact and amount can be ignored if wanted_item is nil
+- return: maximally 2 return values:
+  * 1: (bool) if wanted_item is given: whether the request can be fulfilled; else: whether anything can be taken out, second returnvalue is nil
   * 2: (number) amount that can be given
   * 2: if the first return value is a true value, its greater or equal to "amount"(parameter), else its less
-  * 3: (number) priority (see can_insert) todo: is priority needed here?
 
-take(pos, node, other_pos, wanted_item, amount[, custom]) todo: exact?
+take(pos, node, other_pos[, wanted_item, amount, exact, custom])
 - caller: get some items
 - called: give items away
 - parameters:
-  * pos, node, other_pos, wanted_item, amount, custom: same as above
+  * pos, node, other_pos, wanted_item, amount, exact, custom: same as above
 - return: returns an itemstack or nil
-  * the itemstack should be the item that was wanted
+  * the itemstack should be the item that was wanted or any item if no wanted_item was specified
+  * the count of the itemstack is less than or equal to amount
 - the returned item has to be removed from the nodes inventory because of item conservation
 
 
@@ -192,6 +194,12 @@ custom = {
       -- the lowest value should be 0
     cycle_through = <bool>,
       -- if this is true, set item_at_slot to the number of the next slot, so that the caller can read this
+    meta_match = <bool>,
+      -- this is an exactness requirement
+      -- it is searched for an item which has not only the same name but also the same meta as wanted_item
+    wear_match = <bool>,
+      -- this is an exactness requirement
+      -- caller searches for an item that also has the same wear as wanted_item
     ...
 }
 
@@ -204,6 +212,10 @@ custom = {
     item_at_slot = <number>,
       -- give the item at this slot
     cycle_through = <bool>,
+      -- same as above
+    meta_match = <bool>,
+      -- same as above
+    wear_match = <bool>,
       -- same as above
     ...
 }
@@ -254,9 +266,12 @@ you can use this as placeholder for the callback is_connect
 
 item_transfer.simple_can_take(listname[, is_prtotected_func])
 returns a function
+is_prtotected_func = function(pos, meta[, taker_name])
+is_prtotected_func: returns false to not allow take
 
-item_transfer.simple_take(listname)
+item_transfer.simple_take(listname[, is_prtotected_func])
 returns a function
+is_prtotected_func: same as above
 
 item_transfer.after_place_node(connections, other_after_place)
 returns a function
